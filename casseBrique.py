@@ -35,7 +35,10 @@ class MyWindow(tk.Tk):
 
 
     def jouer(self):
-        self.screen.create_oval(350, 250, 450, 350, fill = "red")
+        r = 10
+        x = 775
+        y = 650
+        self.screen.create_oval(x-r, y-r, x+r, y+r, fill = "red", outline = "white")
         
 
 
