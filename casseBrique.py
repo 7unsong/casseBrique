@@ -1,8 +1,16 @@
 import tkinter as tk
 import math, random
 
+<<<<<<< HEAD
 x0 = 775
 y0 = 650
+=======
+width = 1600
+height = 720
+
+x0 = width / 2
+y0 = 5/6 *  height
+>>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
 r = 10
 
 vitesse = 10
@@ -14,19 +22,19 @@ dy = vitesse * math.sin(angle)
 
 class Ball:
 
-    def __init__(self, canvas, x, y, rayon):
-        self.canvas = canvas
+    def __init__(self, screen, x, y, rayon):
+        self.screen = screen
         self.x = x
         self.y = y
         self.rayon = rayon
         self.dx = dx
         self.dy = dy
-        self.width = int(canvas["width"])
-        self.height = int(canvas["height"])
+        self.width = int(screen["width"])
+        self.height = int(screen["height"])
         self.moving = False
 
         # Création de la balle
-        self.id = canvas.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
+        self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
 
     def deplacement(self):
         # Gestion des collisions
@@ -49,6 +57,7 @@ class Ball:
         self.x += self.dx
         self.y += self.dy
 
+<<<<<<< HEAD
         if hasattr(self.canvas.master, "Bricks"):
 
             for brique in self.canvas.master.Bricks:
@@ -64,8 +73,11 @@ class Ball:
                     self.dy *= -1
 
         self.canvas.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon,)
+=======
+        self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon)
+>>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
 
-        self.canvas.after(20, self.deplacement)
+        self.screen.after(20, self.deplacement)
 
 
     def move(self):
@@ -74,17 +86,55 @@ class Ball:
             self.deplacement()
 
 
+<<<<<<< HEAD
 class Brick(tk.Tk):
 
     def __init__(self, screen, x, y, width, height, color, ball):
+=======
+class Brick:
+
+    def __init__(self, screen, x, y, width, height, color):
+>>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
 
         
         self.screen = screen
         self.rect = screen.create_rectangle(x, y, x+width, y+height, fill = color)
         self.object_ball = ball
     
+<<<<<<< HEAD
+=======
+        
+        
 
+class Paddle:
+>>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
 
+    def __init__(self, screen, x, y, width, height):
+        self.screen = screen
+        self.x = x
+        self.y =y
+        self.width = width
+        self.height = height
+        self.screen.bind_all("<Left>", self.gauche)
+        self.screen.bind_all("<Right>", self.droite)
+        self
+        self.paddle = screen.create_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, fill = "grey")
+        
+    
+    def gauche(self, evt):
+        if self.x - self.width/2 > 0:
+            self.x -= 20
+            self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
+
+    def droite(self, evt):
+        if self.x + self.width < int(self.screen["width"]):
+            self.x += 20
+            self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
+"""
+        if touche == "d" and self.x + self.width/2 < int(self.screen["width"]):
+            self.x += 20
+            self.screen.coords(self.id, self.x, self.y, self.x + width, self.y + height)
+"""
 class MyWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -96,6 +146,7 @@ class MyWindow(tk.Tk):
         self.screen.pack()
 
         self.object_ball = Ball(self.screen, x0, y0, r)
+        self.abject_paddle = Paddle(self.screen, x0 - 100, y0+35, 200, 15)
 
         labelScore = tk.Label(self, text="Score: ", bg="black", font=("Arial", 15, "bold"), fg="yellow")
         labelScore.place(relx=0.90, rely=0.05)
@@ -109,9 +160,18 @@ class MyWindow(tk.Tk):
         buttonPlay = tk.Button(self, text = "Jouer", font = 36, fg = "green", command = self.object_ball.move)
         buttonPlay.place(relx = 0.02, rely = 0.93)
         
+        
         self.Bricks = []
         self.showBrick()
+<<<<<<< HEAD
     
+=======
+
+
+
+
+
+>>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
     def showBrick(self):
         height = 36
         width = 100
