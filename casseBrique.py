@@ -1,8 +1,8 @@
 import tkinter as tk
 import math, random
 
-width = 1920
-height = 1080
+width = 1600
+height = 800
 
 x0 = 775
 y0 = 650
