@@ -14,6 +14,18 @@ angle = random.uniform(0,2*math.pi)
 dx = vitesse*math.cos(angle)
 dy = vitesse*math.sin(angle)
 
+class Brick(tk.Tk):
+
+    
+
+    def __init__(self, screen, x, y, width, height, color):
+
+        self.screen = screen
+        self.rect = screen.create_rectangle(x, y, x+width, y+height, fill = color)
+    
+        if 
+        
+
 
 
 class MyWindow(tk.Tk):
@@ -21,6 +33,7 @@ class MyWindow(tk.Tk):
     def __init__(self):
 
         super().__init__()
+
 
         self.geometry("1920x1080")
 
@@ -40,38 +53,29 @@ class MyWindow(tk.Tk):
 
         buttonPlay = tk.Button(self, text = "Jouer", font = 36, fg = "green", command = self.spawn)
         buttonPlay.place(relx = 0.02, rely = 0.93)
-
-
-    def spawn(self):
-        r = 10
-        x = 775
-        y = 650
-        self.screen.create_oval(x-r, y-r, x+r, y+r, fill = "red", outline = "white")
-        self.deplacement
-    
-    def deplacement(self):
-        global x0, y0, dx, dy
-
-        if x0 + r + dx > width:
-            x0 = 2*(width - r) - x0
-            dx = -dx
-
-        if x0 - r + dx < 0:
-            x0 = 2*r - x0
-            dx = -dx
-    
-        if y0 + r + dy > height:
-            y0 = 2*(height - r) - y0
-            dy = - dy
-    
-        if y0 - r + dy < 0:
-            y0 = 2*r - y0
-            dy = -dy
-    
-        self.screen.coords(self.spawn, x0-r, y0-r , x0+r, y0+r)
         
+        self.Bricks = []
+        self.showBrick()
 
-        self.after(20, self.deplacement)
+
+
+
+    def showBrick(self):
+        height = 35
+        width = 100
+        space = 20
+        lines = 5
+        columns = 10
+        color_code = ["red", "orange", "yellow", "green", "cyan"]
+
+        for i in range(lines):
+            for j in range(columns):
+                x = j * (width + space) + 150
+                y = i * (height + space) + 110
+                self.Bricks.append(Brick(self.screen, x, y, width, height, color_code[i]))
+            
+    
+
 
     
 window = MyWindow()
