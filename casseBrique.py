@@ -8,71 +8,86 @@ x0 = 775
 y0 = 650
 r = 10
 
-vitesse = 1
-angle = random.uniform(0,2*math.pi)
+vitesse = 10
+angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
 
-dx = vitesse*math.cos(angle)
-dy = vitesse*math.sin(angle)
+dx = vitesse * math.cos(angle)
+dy = vitesse * math.sin(angle)
+
+
+class Ball:
+
+    def __init__(self, canvas, x, y, rayon):
+        self.canvas = canvas
+        self.x = x
+        self.y = y
+        self.rayon = rayon
+        self.dx = dx
+        self.dy = dy
+        self.width = int(canvas["width"])
+        self.height = int(canvas["height"])
+        self.moving = False
+
+        # Création de la balle
+        self.id = canvas.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
+
+    def deplacement(self):
+        # Gestion des collisions
+        if self.x + self.rayon + self.dx > self.width:
+            self.x = self.width - self.rayon
+            self.dx = -self.dx
+
+        if self.x - self.rayon + self.dx < 0:
+            self.x = self.rayon
+            self.dx = -self.dx
+
+        if self.y + self.rayon + self.dy > self.height:
+            self.y = self.height - self.rayon
+            self.dy = -self.dy
+
+        if self.y - self.rayon + self.dy < 0:
+            self.y = self.rayon
+            self.dy = -self.dy
+        
+        self.x += self.dx
+        self.y += self.dy
+
+        self.canvas.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon,)
+
+        self.canvas.after(20, self.deplacement)
+
+    def move(self):
+        if not self.moving:
+            self.moving = True
+            self.deplacement()
+
 
 
 
 class MyWindow(tk.Tk):
-
     def __init__(self):
-
         super().__init__()
 
-        self.geometry("1920x1080")
-
+        self.geometry("1600x900")
         self.title("Casse Brique")
 
-        self.screen = tk.Canvas(self, width = 1920, height = 1080, bg = "black")
+        self.screen = tk.Canvas(self, width=1600, height=900, bg="black")
         self.screen.pack()
 
-        labelScore = tk.Label(self, text = "Score: ", bg = "black", font = ("Arial", 15, "bold"), fg = "yellow")
-        labelScore.place(relx = 0.90, rely = 0.05)
+        self.object_ball = Ball(self.screen, x0, y0, r)
 
-        labelVie = tk.Label(self, text = "Vies: ", bg = "black", font = ("Arial", 15, "bold"), fg ="yellow")
-        labelVie.place(relx = 0.02, rely = 0.05)
+        labelScore = tk.Label(self, text="Score: ", bg="black", font=("Arial", 15, "bold"), fg="yellow")
+        labelScore.place(relx=0.90, rely=0.05)
 
-        buttonQuit = tk.Button(self, text = "Quitter", font = 36, fg = "red", command = self.destroy)
-        buttonQuit.place(relx = 0.08, rely = 0.93)
+        labelVie = tk.Label(self, text="Vies: ", bg="black", font=("Arial", 15, "bold"), fg="yellow")
+        labelVie.place(relx=0.02, rely=0.05)
 
-        buttonPlay = tk.Button(self, text = "Jouer", font = 36, fg = "green", command = self.spawn)
-        buttonPlay.place(relx = 0.02, rely = 0.93)
+        buttonQuit = tk.Button(self, text="Quitter", font=36, fg="red", command=self.destroy)
+        buttonQuit.place(relx=0.08, rely=0.93)
+
+        buttonPlay = tk.Button(self, text="Jouer", font=36, fg="green", command=self.object_ball.move)
+        buttonPlay.place(relx=0.02, rely=0.93)
 
 
-    def spawn(self):
-        r = 10
-        x = 775
-        y = 650
-        self.screen.create_oval(x-r, y-r, x+r, y+r, fill = "red", outline = "white")
-        self.deplacement
-    
-    def deplacement(self):
-        global x0, y0, dx, dy
-
-        if x0 + r + dx > width:
-            x0 = 2*(width - r) - x0
-            dx = -dx
-
-        if x0 - r + dx < 0:
-            x0 = 2*r - x0
-            dx = -dx
-    
-        if y0 + r + dy > height:
-            y0 = 2*(height - r) - y0
-            dy = - dy
-    
-        if y0 - r + dy < 0:
-            y0 = 2*r - y0
-            dy = -dy
-    
-        self.screen.coords(self.spawn, x0-r, y0-r , x0+r, y0+r)
-        
-
-        self.after(20, self.deplacement)
-
-    
 window = MyWindow()
 window.mainloop()
