@@ -52,7 +52,21 @@ class Ball:
         self.x += self.dx
         self.y += self.dy
 
-        self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon)
+        if hasattr(self.screen.master, "Bricks"):
+
+            for brique in self.screen.master.Bricks:
+                bx1, by1, bx2, by2 = self.screen.coords(brique.rect)
+                xb1 = self.x - self.rayon
+                yb1 = self.y - self.rayon
+                xb2 = self.x + self.rayon
+                yb2 = self.y + self.rayon
+
+                if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
+                    self.screen.delete(brique.rect)
+                    self.screen.master.Bricks.remove(brique)
+                    self.dy *= -1
+
+        self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon,)
 
         self.screen.after(20, self.deplacement)
 
@@ -95,7 +109,6 @@ class Paddle:
             self.x += 20
             self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
 
-±
 class MyWindow(tk.Tk):
     def __init__(self):
         super().__init__()
