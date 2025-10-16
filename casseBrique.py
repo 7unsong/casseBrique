@@ -1,16 +1,11 @@
 import tkinter as tk
 import math, random
 
-<<<<<<< HEAD
-x0 = 775
-y0 = 650
-=======
 width = 1600
 height = 720
 
 x0 = width / 2
 y0 = 5/6 *  height
->>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
 r = 10
 
 vitesse = 10
@@ -57,25 +52,7 @@ class Ball:
         self.x += self.dx
         self.y += self.dy
 
-<<<<<<< HEAD
-        if hasattr(self.canvas.master, "Bricks"):
-
-            for brique in self.canvas.master.Bricks:
-                bx1, by1, bx2, by2 = self.canvas.coords(brique.rect)
-                xb1 = self.x - self.rayon
-                yb1 = self.y - self.rayon
-                xb2 = self.x + self.rayon
-                yb2 = self.y + self.rayon
-
-                if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
-                    self.canvas.delete(brique.rect)
-                    self.canvas.master.Bricks.remove(brique)
-                    self.dy *= -1
-
-        self.canvas.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon,)
-=======
         self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon)
->>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
 
         self.screen.after(20, self.deplacement)
 
@@ -86,29 +63,16 @@ class Ball:
             self.deplacement()
 
 
-<<<<<<< HEAD
-class Brick(tk.Tk):
-
-    def __init__(self, screen, x, y, width, height, color, ball):
-=======
 class Brick:
 
-    def __init__(self, screen, x, y, width, height, color):
->>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
+    def __init__(self, screen, x, y, width, height, color, ball):
 
         
         self.screen = screen
         self.rect = screen.create_rectangle(x, y, x+width, y+height, fill = color)
         self.object_ball = ball
     
-<<<<<<< HEAD
-=======
-        
-        
-
 class Paddle:
->>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
-
     def __init__(self, screen, x, y, width, height):
         self.screen = screen
         self.x = x
@@ -130,11 +94,8 @@ class Paddle:
         if self.x + self.width < int(self.screen["width"]):
             self.x += 20
             self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
-"""
-        if touche == "d" and self.x + self.width/2 < int(self.screen["width"]):
-            self.x += 20
-            self.screen.coords(self.id, self.x, self.y, self.x + width, self.y + height)
-"""
+
+±
 class MyWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -163,15 +124,7 @@ class MyWindow(tk.Tk):
         
         self.Bricks = []
         self.showBrick()
-<<<<<<< HEAD
     
-=======
-
-
-
-
-
->>>>>>> 0a08ea77650560a0e34b0051593b996a6dd28186
     def showBrick(self):
         height = 36
         width = 100
