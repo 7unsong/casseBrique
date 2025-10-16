@@ -1,9 +1,6 @@
 import tkinter as tk
 import math, random
 
-width = 1600
-height = 900
-
 x0 = 775
 y0 = 650
 r = 10
@@ -52,9 +49,24 @@ class Ball:
         self.x += self.dx
         self.y += self.dy
 
+        if hasattr(self.canvas.master, "Bricks"):
+
+            for brique in self.canvas.master.Bricks:
+                bx1, by1, bx2, by2 = self.canvas.coords(brique.rect)
+                xb1 = self.x - self.rayon
+                yb1 = self.y - self.rayon
+                xb2 = self.x + self.rayon
+                yb2 = self.y + self.rayon
+
+                if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
+                    self.canvas.delete(brique.rect)
+                    self.canvas.master.Bricks.remove(brique)
+                    self.dy *= -1
+
         self.canvas.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon,)
 
         self.canvas.after(20, self.deplacement)
+
 
     def move(self):
         if not self.moving:
@@ -64,26 +76,23 @@ class Ball:
 
 class Brick(tk.Tk):
 
-    
+    def __init__(self, screen, x, y, width, height, color, ball):
 
-    def __init__(self, screen, x, y, width, height, color):
-
+        
         self.screen = screen
         self.rect = screen.create_rectangle(x, y, x+width, y+height, fill = color)
+        self.object_ball = ball
     
-        
-        
-
 
 
 class MyWindow(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.geometry("1600x720")
+        self.geometry("1500x800")
         self.title("Casse Brique")
 
-        self.screen = tk.Canvas(self, width=1600, height=720, bg="black")
+        self.screen = tk.Canvas(self, width=1500, height=800, bg="black")
         self.screen.pack()
 
         self.object_ball = Ball(self.screen, x0, y0, r)
@@ -102,12 +111,9 @@ class MyWindow(tk.Tk):
         
         self.Bricks = []
         self.showBrick()
-
-
-
-
+    
     def showBrick(self):
-        height = 35
+        height = 36
         width = 100
         space = 20
         lines = 5
@@ -118,9 +124,8 @@ class MyWindow(tk.Tk):
             for j in range(columns):
                 x = j * (width + space) + 150
                 y = i * (height + space) + 110
-                self.Bricks.append(Brick(self.screen, x, y, width, height, color_code[i]))
+                self.Bricks.append(Brick(self.screen, x, y, width, height, color_code[i], self.object_ball))
             
-    
 
 
     
