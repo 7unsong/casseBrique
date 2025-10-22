@@ -26,9 +26,10 @@ class Ball:
         self.dy = dy
         self.width = int(screen["width"])
         self.height = int(screen["height"])
+        self.vies = 3
         self.moving = False
 
-        # Création de la balle
+        # Création de la balles
         self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
 
     def deplacement(self):
@@ -63,8 +64,20 @@ class Ball:
 
                 if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
                     self.screen.delete(brique.rect)
+                    try:
+                        # increment score on main window
+                        self.screen.master.score += 100
+                        if hasattr(self.screen.master, 'update_score'):
+                            self.screen.master.update_score()
+                    except Exception:
+                        pass
                     self.screen.master.Bricks.remove(brique)
                     self.dy *= -1
+                    try:
+                        if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
+                            self.screen.master.win()
+                    except Exception:
+                        pass
 
         raquette = self.screen.master.object_paddle
         try:
@@ -88,9 +101,29 @@ class Ball:
             self.y = paddle_top - self.rayon 
             self.dy = -self.dy
 
+        if self.y + self.rayon + 10 > self.height:
+            self.vies -= 1
+            try:
+                self.moving = False
+                self.x = x0
+                self.y = y0
+                self.dx = dx
+                self.dy = dy
+                if hasattr(self.screen.master, 'update_lives'):
+                    self.screen.master.update_lives()
+                try:
+                    if self.vies <= 0 and hasattr(self.screen.master, 'game_over'):
+                        self.screen.master.game_over()
+                except Exception:
+                    pass
+            except Exception:
+                pass
+
+
         self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon,)
 
-        self.screen.after(20, self.deplacement)
+        if self.moving:
+            self.screen.after(20, self.deplacement)
 
     def move(self):
         if not self.moving:
@@ -140,21 +173,48 @@ class MyWindow(tk.Tk):
 
         self.object_ball = Ball(self.screen, x0, y0, r)
         self.object_paddle = Paddle(self.screen, x0 - 100, y0+35, 200, 15)
+        # score
+        self.score = 0
+        self.labelScore = tk.Label(self, text=f"Score: {self.score}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
+        self.labelScore.place(relx=0.90, rely=0.05)
 
-        labelScore = tk.Label(self, text="Score: ", bg="black", font=("Arial", 15, "bold"), fg="yellow")
-        labelScore.place(relx=0.90, rely=0.05)
+        self.labelVie = tk.Label(self, text=f"Vies: {self.object_ball.vies}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
+        self.labelVie.place(relx=0.02, rely=0.05)
 
-        labelVie = tk.Label(self, text="Vies: ", bg="black", font=("Arial", 15, "bold"), fg="yellow")
-        labelVie.place(relx=0.02, rely=0.05)
+        buttonQuit = tk.Button(self, text='Quitter', font=36, fg='red', command=self.destroy)
+        buttonQuit.place(relx=0.08, rely=0.93)
 
-        buttonQuit = tk.Button(self, text = 'Quitter' , font = 36, fg ='red', command = self.destroy )
-        buttonQuit.place(relx = 0.08, rely = 0.93)
-
-        buttonPlay = tk.Button(self, text = "Jouer", font = 36, fg = "green", command = self.object_ball.move)
-        buttonPlay.place(relx = 0.02, rely = 0.93)
+        buttonPlay = tk.Button(self, text="Jouer", font=36, fg="green", command=self.object_ball.move)
+        buttonPlay.place(relx=0.02, rely=0.93)
         
         self.Bricks = []
         self.showBrick()
+
+    def update_lives(self):
+        try:
+            self.labelVie.config(text=f"Vies: {self.object_ball.vies}")
+        except Exception:
+            pass
+    
+    def update_score(self):
+        try:
+            self.labelScore.config(text=f"Score: {self.score}")
+        except Exception:
+            pass
+
+    def win(self):
+        try:
+            self.object_ball.moving = False
+        except Exception:
+            pass
+        self.screen.create_text(int(self.screen['width'])//2, int(self.screen['height'])//2, text="YOU WIN!", fill="white", font=("Arial", 40, "bold"))
+
+    def game_over(self):
+        try:
+            self.object_ball.moving = False
+        except Exception:
+            pass
+        self.screen.create_text(int(self.screen['width'])//2, int(self.screen['height'])//2, text="GAME OVER", fill="red", font=("Arial", 40, "bold"))
     
     def showBrick(self):
         height = 36
