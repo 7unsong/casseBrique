@@ -8,16 +8,20 @@ x0 = width / 2
 y0 = 5/6 *  height
 r = 10
 
-vitesse = 10
-angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
 
-dx = vitesse * math.cos(angle)
-dy = vitesse * math.sin(angle)
 
 
 class Ball:
 
+
     def __init__(self, screen, x, y, rayon):
+
+        vitesse = 10
+        angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
+        dx = vitesse * math.cos(angle)
+        dy = vitesse * math.sin(angle)
+        
+
         self.screen = screen
         self.x = x
         self.y = y
@@ -29,11 +33,16 @@ class Ball:
         self.vies = 3
         self.moving = False
 
+        
+
+
         # Création de la balles
         self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
 
     def deplacement(self):
         # Gestion des collisions
+
+
         if self.x + self.rayon + self.dx > self.width:
             self.x = self.width - self.rayon
             self.dx = -self.dx
@@ -62,22 +71,39 @@ class Ball:
                 xb2 = self.x + self.rayon
                 yb2 = self.y + self.rayon
 
-                if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
+                if xb1 <= bx2 and xb2 >= bx1 and yb1 <= by2 and yb2 >= by1:
+
                     self.screen.delete(brique.rect)
-                    try:
-                        # increment score on main window
-                        self.screen.master.score += 100
-                        if hasattr(self.screen.master, 'update_score'):
-                            self.screen.master.update_score()
-                    except Exception:
-                        pass
                     self.screen.master.Bricks.remove(brique)
-                    self.dy *= -1
-                    try:
-                        if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
-                            self.screen.master.win()
-                    except Exception:
-                        pass
+
+
+                # Détermine le côté de l'impact
+
+                    dist_top = abs(yb2 - by1)
+                    dist_bottom = abs(yb1 - by2)
+                    dist_left = abs(xb2 - bx1)
+                    dist_right = abs(xb1 - bx2)
+                    min_dist = min(dist_top, dist_bottom, dist_left, dist_right)
+
+                # Inversion selon le côté de contact
+
+                    if min_dist == dist_top or min_dist == dist_bottom:
+                        self.dy *= -1
+                    else:
+                        self.dx *= -1
+                    
+                    # increment score on main window
+
+                    self.screen.master.score += 100
+                    if hasattr(self.screen.master, 'update_score'):
+                        self.screen.master.update_score()
+                   
+                    
+                    if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
+                        self.screen.master.win()
+                   
+                
+
 
         raquette = self.screen.master.object_paddle
         try:
@@ -107,8 +133,6 @@ class Ball:
                 self.moving = False
                 self.x = x0
                 self.y = y0
-                self.dx = dx
-                self.dy = dy
                 if hasattr(self.screen.master, 'update_lives'):
                     self.screen.master.update_lives()
                 try:
@@ -139,26 +163,56 @@ class Brick:
         self.object_ball = ball
     
 class Paddle:
+
     def __init__(self, screen, x, y, width, height):
         self.screen = screen
         self.x = x
-        self.y =y
+        self.y = y
         self.width = width
         self.height = height
-        self.screen.bind_all("<Left>", self.gauche)
-        self.screen.bind_all("<Right>", self.droite)
-        self
-        self.paddle = screen.create_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, fill = "grey")
-        
-    def gauche(self, evt):
-        if self.x > 0:
-            self.x -= 50
-            self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
+        self.speed = 20  # vitesse du déplacement
 
-    def droite(self, evt):
-        if self.x + self.width < int(self.screen["width"]):
-            self.x += 50
-            self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
+        # États des touches
+        self.moving_left = False
+        self.moving_right = False
+
+        # Création de la raquette
+        self.paddle = screen.create_rectangle(self.x, self.y, self.x + self.width, self.y + self.height, fill="grey")
+
+        # Écoute des événements clavier
+        self.screen.bind_all("<KeyPress-Left>", self.start_left)
+        self.screen.bind_all("<KeyRelease-Left>", self.stop_left)
+        self.screen.bind_all("<KeyPress-Right>", self.start_right)
+        self.screen.bind_all("<KeyRelease-Right>", self.stop_right)
+
+        # Démarre le déplacement continu
+        self.move_continuously()
+
+    def start_left(self, evt):
+        self.moving_left = True
+
+    def stop_left(self, evt):
+        self.moving_left = False
+
+    def start_right(self, evt):
+        self.moving_right = True
+
+    def stop_right(self, evt):
+        self.moving_right = False
+
+    def move_continuously(self):
+
+        """Déplacement fluide et continu de la raquette."""
+        if self.moving_left and self.x > 0:
+            self.x -= self.speed
+        if self.moving_right and self.x + self.width < int(self.screen["width"]):
+            self.x += self.speed
+
+        # Met à jour la position sur le canvas
+        self.screen.coords(self.paddle, self.x, self.y, self.x + self.width, self.y + self.height)
+
+        # Rappelle cette fonction toutes les 20 ms
+        self.screen.after(20, self.move_continuously)
 
 
 class MyWindow(tk.Tk):
@@ -217,17 +271,17 @@ class MyWindow(tk.Tk):
         self.screen.create_text(int(self.screen['width'])//2, int(self.screen['height'])//2, text="GAME OVER", fill="red", font=("Arial", 40, "bold"))
     
     def showBrick(self):
-        height = 36
-        width = 100
-        space = 20
+        height = 30
+        width = 72
+        space = 5
         lines = 5
-        columns = 10
-        color_code = ["red", "orange", "yellow", "green", "cyan"]
+        columns = 19
+        color_code = ["white", "white", "white", "white", "white"]
 
         for i in range(lines):
             for j in range(columns):
-                x = j * (width + space) + 150
-                y = i * (height + space) + 110
+                x = j * (width + space) + 20
+                y = i * (height + space) + 70
                 self.Bricks.append(Brick(self.screen, x, y, width, height, color_code[i], self.object_ball))
             
 
