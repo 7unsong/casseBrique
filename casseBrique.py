@@ -1,5 +1,6 @@
 import tkinter as tk
 import math, random
+from PIL import Image, ImageTk
 
 width = 1500
 height = 800
@@ -14,7 +15,7 @@ class Ball:
         self.x = x
         self.y = y
         self.rayon = rayon
-        vitesse = 5
+        vitesse = 10
         angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
         self.dx = vitesse * math.cos(angle)
         self.dy = vitesse * math.sin(angle)
@@ -52,26 +53,22 @@ class Ball:
         # brick collisions
         if hasattr(self.screen.master, "Bricks"):
             for brique in list(self.screen.master.Bricks):
-                bx1, by1, bx2, by2 = self.screen.coords(brique.rect)
+
+
+                bx1 = brique.x
+                by1 = brique.y
+                bx2 = brique.x + brique.width
+                by2 = brique.y + brique.height
+
                 xb1 = self.x - self.rayon
                 yb1 = self.y - self.rayon
                 xb2 = self.x + self.rayon
                 yb2 = self.y + self.rayon
 
                 if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
-                    """
-                    # remove brick, update score, bounce
-                    self.screen.delete(brique.rect)
-                    self.screen.master.score += 100
-                    if hasattr(self.screen.master, 'update_score'):
-                        self.screen.master.update_score()
-                    self.screen.master.Bricks.remove(brique)
-                    self.dy *= -1
-                    
-                    # check win
-                    if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
-                        self.screen.master.win()
-"""
+
+                    # remove brick
+
                     self.screen.delete(brique.rect)
                     self.screen.master.Bricks.remove(brique)
 
@@ -184,10 +181,20 @@ class Ball:
 
 
 class Brick:
-    def __init__(self, screen, x, y, width, height, color, ball):
+    
+    def __init__(self, screen, x, y, width, height, color, ball, img=None):
         self.screen = screen
-        self.rect = screen.create_rectangle(x, y, x+width, y+height, fill=color)
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
         self.object_ball = ball
+
+        if img:
+            self.rect = screen.create_image(x, y, image=img, anchor='nw')
+        else:
+            self.rect = screen.create_rectangle(x, y, x + width, y + height, fill=color)
+
 
 
 class Paddle:
@@ -261,6 +268,13 @@ class MyWindow(tk.Tk):
         self.screen = tk.Canvas(self, width=1500, height=800, bg="black")
         self.screen.pack()
 
+        self.heartImg = Image.open("heart.png").resize((30,30))
+        self.heartTkImg = ImageTk.PhotoImage(self.heartImg)
+        self.hearts =[]
+
+        self.dirtTexture = Image.open("dirtTexture.jpg").resize((72,30))
+        self.dirtTkTexture = ImageTk.PhotoImage(self.dirtTexture)
+
         self.object_ball = Ball(self.screen, x0, y0, r)
         self.object_paddle = Paddle(self.screen, x0 - 100, y0+35, 200, 15)
 
@@ -268,8 +282,9 @@ class MyWindow(tk.Tk):
         self.labelScore = tk.Label(self, text=f"Score: {self.score}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
         self.labelScore.place(relx=0.90, rely=0.05)
 
-        self.labelVie = tk.Label(self, text=f"Vies: {self.object_ball.vies}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
-        self.labelVie.place(relx=0.02, rely=0.05)
+        self.object_ball.vies = 3
+        self.showHP(20, 20)
+
 
         buttonQuit = tk.Button(self, text='Quitter', font=36, fg='red', command=self.destroy)
         buttonQuit.place(relx=0.08, rely=0.93)
@@ -280,8 +295,11 @@ class MyWindow(tk.Tk):
         self.Bricks = []
         self.showBrick()
 
+        
+
+
     def update_lives(self):
-        self.labelVie.config(text=f"Vies: {self.object_ball.vies}")
+        self.showHP(20,20)
 
     def update_score(self):
         self.labelScore.config(text=f"Score: {self.score}")
@@ -314,13 +332,26 @@ class MyWindow(tk.Tk):
         space = 5
         lines = 5
         columns = 19
-        color_code = ["white", "white", "white", "white", "white"]
+
 
         for i in range(lines):
             for j in range(columns):
                 x = j * (width + space) + 20
                 y = i * (height + space) + 70
-                self.Bricks.append(Brick(self.screen, x, y, width, height, color_code[i], self.object_ball))
+                self.Bricks.append(Brick(self.screen, x, y, width, height, 'black', self.object_ball, img = self.dirtTkTexture))
+
+    def HP(self, x, y):
+        return self.screen.create_image(x, y, image=self.heartTkImg, anchor='nw')
+
+    def showHP(self, x, y):
+        
+        for heart in self.hearts:
+            self.screen.delete(heart)
+        self.hearts.clear()
+
+        for i in range(self.object_ball.vies):
+            heart = self.HP(x + i * 35, y)
+            self.hearts.append(heart)
 
     def restart(self):
         # clear overlay elements (text and restart button)
@@ -355,7 +386,6 @@ class MyWindow(tk.Tk):
         self.update_score()
         self.update_lives()
         self.buttonPlay.config(state='normal')
-
 
 window = MyWindow()
 window.mainloop()
