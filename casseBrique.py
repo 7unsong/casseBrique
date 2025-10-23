@@ -14,7 +14,7 @@ class Ball:
         self.x = x
         self.y = y
         self.rayon = rayon
-        vitesse = 5
+        vitesse = 10
         angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
         self.dx = vitesse * math.cos(angle)
         self.dy = vitesse * math.sin(angle)
@@ -22,9 +22,6 @@ class Ball:
         self.height = int(screen["height"])
         self.vies = 3
         self.moving = False
-
-        
-
 
         # Création de la balles
         self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
@@ -59,19 +56,7 @@ class Ball:
                 yb2 = self.y + self.rayon
 
                 if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
-                    """
-                    # remove brick, update score, bounce
-                    self.screen.delete(brique.rect)
-                    self.screen.master.score += 100
-                    if hasattr(self.screen.master, 'update_score'):
-                        self.screen.master.update_score()
-                    self.screen.master.Bricks.remove(brique)
-                    self.dy *= -1
-                    
-                    # check win
-                    if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
-                        self.screen.master.win()
-"""
+                # remove brick
                     self.screen.delete(brique.rect)
                     self.screen.master.Bricks.remove(brique)
 
@@ -175,7 +160,7 @@ class Ball:
         if self.moving:
             self.screen.after(20, self.deplacement)
 
-    def move(self):
+    def move(self, evt=None):
         win_flag = getattr(self.screen.master, 'has_won', False)
         over_flag = getattr(self.screen.master, 'is_game_over', False)
         if not (self.moving or win_flag or over_flag):
@@ -276,6 +261,8 @@ class MyWindow(tk.Tk):
 
         self.buttonPlay = tk.Button(self, text="Jouer", font=36, fg="green", command=self.object_ball.move)
         self.buttonPlay.place(relx=0.02, rely=0.93)
+        # bind space key (lowercase 'space' keysym) — ignore event argument
+        self.screen.bind_all("<space>", lambda e: self.object_ball.move())
 
         self.Bricks = []
         self.showBrick()
@@ -311,9 +298,9 @@ class MyWindow(tk.Tk):
     def showBrick(self):
         height = 30
         width = 72
-        space = 5
+        space = 15
         lines = 5
-        columns = 19
+        columns = 18
         color_code = ["white", "white", "white", "white", "white"]
 
         for i in range(lines):
