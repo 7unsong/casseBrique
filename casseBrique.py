@@ -25,7 +25,7 @@ class Ball:
         self.moving = False
 
         # Création de la balles
-        self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red", outline="white")
+        self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red")
 
     def deplacement(self):
         # Gestion des collisions
@@ -269,8 +269,8 @@ class MyWindow(tk.Tk):
         self.heartTkImg = ImageTk.PhotoImage(self.heartImg)
         self.hearts =[]
 
-        self.dirtTexture = Image.open("dirtTexture.jpg").resize((72,30))
-        self.dirtTkTexture = ImageTk.PhotoImage(self.dirtTexture)
+        self.brickTexture = Image.open("brickTexture.jpg").resize((72,30))
+        self.brickTkTexture = ImageTk.PhotoImage(self.brickTexture)
 
         self.object_ball = Ball(self.screen, x0, y0, r)
         self.object_paddle = Paddle(self.screen, x0 - 100, y0+35, 200, 15)
@@ -337,7 +337,7 @@ class MyWindow(tk.Tk):
             for j in range(columns):
                 x = j * (width + space) + 20
                 y = i * (height + space) + 70
-                self.Bricks.append(Brick(self.screen, x, y, width, height, 'black', self.object_ball, img = self.dirtTkTexture))
+                self.Bricks.append(Brick(self.screen, x, y, width, height, 'black', self.object_ball, img = self.brickTkTexture))
 
     def HP(self, x, y):
         return self.screen.create_image(x, y, image=self.heartTkImg, anchor='nw')
