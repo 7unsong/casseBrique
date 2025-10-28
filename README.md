@@ -1,4 +1,4 @@
-# 🧱 Casse Brique
+# Casse Brique
 
 **Auteurs :** DURAND Guillian & SONG Yun  
 **Dépôt Git :** [https://github.com/7unsong/casseBrique.git](https://github.com/7unsong/casseBrique.git)  
@@ -6,7 +6,7 @@
 
 ---
 
-## 🎮 Règles du jeu
+## Règles du jeu
 
 Le jeu **Casse-Brique** reprend les principes classiques du genre :
 
@@ -19,7 +19,7 @@ Le jeu **Casse-Brique** reprend les principes classiques du genre :
 
 ---
 
-## 💎 Bonus
+## Bonus
 
 Certaines briques spéciales (en texture diamant) contiennent un **bonus** :
 - Lorsqu’elles sont détruites, le bonus est ajouté à une file d’attente.
@@ -28,7 +28,7 @@ Certaines briques spéciales (en texture diamant) contiennent un **bonus** :
 
 ---
 
-## ⚙️ Spécificités de l’implémentation
+## Spécificités de l’implémentation
 
 Ce projet respecte la contrainte du TP demandant l’utilisation d’une **liste**, d’une **pile** et d’une **file** :
 
@@ -47,7 +47,7 @@ Autres caractéristiques :
 
 ---
 
-## 🕹️ Commandes
+## Commandes
 
 | Action | Touche |
 |--------|--------|
@@ -58,7 +58,7 @@ Autres caractéristiques :
 
 ---
 
-## 🧠 Architecture générale du code
+## Architecture générale du code
 
 - `MyWindow` : fenêtre principale, gère l’interface graphique, le score, les vies et la détection de victoire/défaite.  
 - `Ball` : gère les déplacements, rebonds et collisions avec les briques et la raquette.  
@@ -69,7 +69,7 @@ Autres caractéristiques :
 
 ---
 
-## 🏁 Objectif pédagogique
+## Objectif pédagogique
 
 Ce projet met en pratique la programmation orientée objet et l’intégration de **structures de données abstraites** (liste, pile, file) dans une application graphique interactive.  
 Il illustre également la gestion des événements et des collisions dans un jeu en temps réel.
