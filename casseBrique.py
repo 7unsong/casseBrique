@@ -1,6 +1,7 @@
 import tkinter as tk
 import math, random
 from PIL import Image, ImageTk
+from collections import deque
 
 width = 1500
 height = 800
@@ -8,6 +9,39 @@ height = 800
 x0 = width / 2
 y0 = 5/6 * height
 r = 10
+
+
+class LifeStack:
+    def __init__(self, n):
+        self.stack = ['❤️'] * n
+
+    def lose_life(self):
+        if not self.is_empty():
+            return self.stack.pop()
+
+    def add_life(self):
+        self.stack.append('❤️')
+
+    def is_empty(self):
+        return len(self.stack) == 0
+
+    def count(self):
+        return len(self.stack)
+
+
+class BonusQueue:
+    def __init__(self):
+        self.queue = deque()
+
+    def add_bonus(self, bonus):
+        self.queue.append(bonus)
+
+    def use_bonus(self):
+        if self.queue:
+            return self.queue.popleft()
+
+    def is_empty(self):
+        return len(self.queue) == 0
 
 class Ball:
     def __init__(self, screen, x, y, rayon):
@@ -21,7 +55,7 @@ class Ball:
         self.dy = vitesse * math.sin(angle)
         self.width = int(screen["width"])
         self.height = int(screen["height"])
-        self.vies = 3
+        self.lives = LifeStack(3)
         self.moving = False
 
         # Création de la balles
@@ -29,7 +63,6 @@ class Ball:
 
     def deplacement(self):
         # Gestion des collisions
-
 
         if self.x + self.rayon + self.dx > self.width:
             self.x = self.width - self.rayon
@@ -49,9 +82,8 @@ class Ball:
 
         # brick collisions
         if hasattr(self.screen.master, "Bricks"):
+            # parcours sur une copie pour pouvoir modifier l'originale
             for brique in list(self.screen.master.Bricks):
-
-
                 bx1 = brique.x
                 by1 = brique.y
                 bx2 = brique.x + brique.width
@@ -63,41 +95,55 @@ class Ball:
                 yb2 = self.y + self.rayon
 
                 if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
+                    # remove brick from canvas and list
+                    try:
+                        self.screen.delete(brique.rect)
+                    except Exception:
+                        pass
 
-                    # remove brick
+                    try:
+                        # defensive: only remove if still present
+                        if brique in self.screen.master.Bricks:
+                            self.screen.master.Bricks.remove(brique)
+                    except Exception:
+                        pass
 
-                    self.screen.delete(brique.rect)
-                    self.screen.master.Bricks.remove(brique)
-
-
-                # Détermine le côté de l'impact
-
+                    # Détermine le côté de l'impact pour inverser la vélocité
                     dist_top = abs(yb2 - by1)
                     dist_bottom = abs(yb1 - by2)
                     dist_left = abs(xb2 - bx1)
                     dist_right = abs(xb1 - bx2)
                     min_dist = min(dist_top, dist_bottom, dist_left, dist_right)
 
-                # Inversion selon le côté de contact
-
                     if min_dist == dist_top or min_dist == dist_bottom:
                         self.dy *= -1
                     else:
                         self.dx *= -1
-                    
-                    # increment score on main window
 
-                    self.screen.master.score += 100
-                    if hasattr(self.screen.master, 'update_score'):
-                        self.screen.master.update_score()
-                   
-                    
-                    if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
-                        self.screen.master.win()
-                   
+                    # increment score and update UI
+                    try:
+                        self.screen.master.score += 100
+                        if hasattr(self.screen.master, 'update_score'):
+                            self.screen.master.update_score()
+                    except Exception:
+                        pass
+
+                    # enqueue bonus if this brick is a bonus brick
+                    try:
+                        if getattr(brique, 'is_bonus', False) and hasattr(self.screen.master, 'bonus_queue'):
+                            self.screen.master.bonus_queue.add_bonus("paddle_size_up")
+                    except Exception:
+                        pass
+
+            # FIN DE BOUCLE: vérification de victoire (fait en dehors de la boucle)
+            try:
+                if hasattr(self.screen.master, "Bricks") and len(self.screen.master.Bricks) == 0:
+                    # schedule win() on la boucle principale Tk pour éviter tout problème d'appel direct
+                    if hasattr(self.screen.master, 'win'):
+                        self.screen.master.after(0, self.screen.master.win)
+            except Exception:
+                pass
                 
-
-
         # paddle collision
         paddle = getattr(self.screen.master, 'object_paddle', None)
         if paddle is not None:
@@ -128,7 +174,8 @@ class Ball:
 
         # fallen below bottom
         if self.y + self.rayon + 10 > self.height:
-            self.vies -= 1
+            # lose one life from the stack
+            self.lives.lose_life()
             # stop and reset
             self.moving = False
             self.x = x0
@@ -147,7 +194,7 @@ class Ball:
                 if hasattr(self.screen.master, 'update_lives'):
                     self.screen.master.update_lives()
                 try:
-                    if self.vies <= 0 and hasattr(self.screen.master, 'game_over'):
+                    if self.lives.is_empty() and hasattr(self.screen.master, 'game_over'):
                         self.screen.master.game_over()
                 except Exception:
                     pass
@@ -158,7 +205,7 @@ class Ball:
             # update lives and check game over
             if hasattr(self.screen.master, 'update_lives'):
                 self.screen.master.update_lives()
-            if self.vies <= 0 and hasattr(self.screen.master, 'game_over'):
+            if self.lives.is_empty() and hasattr(self.screen.master, 'game_over'):
                 self.screen.master.game_over()
 
 
@@ -178,16 +225,17 @@ class Ball:
 
 
 class Brick:
-    
-    def __init__(self, screen, x, y, width, height, color, ball, img=None):
+    def __init__(self, screen, x, y, width, height, color, ball, img=None, is_bonus=False):
         self.screen = screen
         self.x = x
         self.y = y
         self.width = width
         self.height = height
         self.object_ball = ball
+        self.is_bonus = bool(is_bonus)
 
         if img:
+            # img is expected to be a PhotoImage ready to place
             self.rect = screen.create_image(x, y, image=img, anchor='nw')
         else:
             self.rect = screen.create_rectangle(x, y, x + width, y + height, fill=color)
@@ -201,8 +249,12 @@ class Paddle:
         self.x = x
         self.y = y
         self.width = width
+        self.default_width = width
         self.height = height
         self.speed = 20  # vitesse du déplacement
+        # boost state (non-stacking)
+        self.boosted = False
+        self.boost_timer = None
 
         # États des touches
         self.moving_left = False
@@ -271,17 +323,26 @@ class MyWindow(tk.Tk):
 
         self.brickTexture = Image.open("brickTexture.jpg").resize((72,30))
         self.brickTkTexture = ImageTk.PhotoImage(self.brickTexture)
+        # diamond texture for bonus bricks
+        try:
+            self.diamondTexture = Image.open("Diamond_Ore.png").resize((72,30))
+            self.diamondTkTexture = ImageTk.PhotoImage(self.diamondTexture)
+        except Exception:
+            # fall back to brick texture if diamond not found
+            self.diamondTkTexture = self.brickTkTexture
 
         self.object_ball = Ball(self.screen, x0, y0, r)
-        self.object_paddle = Paddle(self.screen, x0 - 100, y0+35, 200, 15)
+        self.object_paddle = Paddle(self.screen, x0 - 125, y0+35, 250, 15)
 
         self.score = 0
         self.labelScore = tk.Label(self, text=f"Score: {self.score}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
         self.labelScore.place(relx=0.90, rely=0.05)
 
-        self.object_ball.vies = 3
+        # initialize bonus queue
+        self.bonus_queue = BonusQueue()
+        # start periodic game update (process pending bonuses)
+        self.after(200, self.update_game)
         self.showHP(20, 20)
-
 
         buttonQuit = tk.Button(self, text='Quitter', font=36, fg='red', command=self.destroy)
         buttonQuit.place(relx=0.08, rely=0.93)
@@ -302,6 +363,51 @@ class MyWindow(tk.Tk):
 
     def update_score(self):
         self.labelScore.config(text=f"Score: {self.score}")
+        if len(self.Bricks) == 0 and not self.has_won:
+            self.win()
+
+    def update_game(self):
+        """Periodic game updates (process queued bonuses)."""
+        try:
+            if not self.bonus_queue.is_empty():
+                bonus = self.bonus_queue.use_bonus()
+                if bonus:
+                    self.apply_bonus(bonus)
+        except Exception:
+            pass
+        # reschedule
+        self.after(200, self.update_game)
+
+    def apply_bonus(self, bonus):
+        if bonus == "paddle_size_up":
+            try:
+                p = self.object_paddle
+                # do not stack boosts
+                if getattr(p, 'boosted', False):
+                    return
+                p.boosted = True
+                # increase width and update coords
+                p.width += 50
+                p.set_x(p.x)
+
+                # schedule revert after 15 seconds
+                def revert():
+                    try:
+                        p.width = getattr(p, 'default_width', p.width - 50)
+                        p.boosted = False
+                        p.set_x(p.x)
+                        p.boost_timer = None
+                    except Exception:
+                        pass
+
+                # store timer id so we can cancel on restart
+                try:
+                    p.boost_timer = self.after(15000, revert)
+                except Exception:
+                    # fallback: try without storing timer
+                    self.after(15000, revert)
+            except Exception:
+                pass
 
     def win(self):
         self.object_ball.moving = False
@@ -337,7 +443,10 @@ class MyWindow(tk.Tk):
             for j in range(columns):
                 x = j * (width + space) + 20
                 y = i * (height + space) + 70
-                self.Bricks.append(Brick(self.screen, x, y, width, height, 'black', self.object_ball, img = self.brickTkTexture))
+                # small chance the brick is a bonus brick; use diamond texture if so
+                is_bonus = (random.random() < 0.2)
+                img = self.diamondTkTexture if is_bonus else self.brickTkTexture
+                self.Bricks.append(Brick(self.screen, x, y, width, height, 'black', self.object_ball, img=img, is_bonus=is_bonus))
 
     def HP(self, x, y):
         return self.screen.create_image(x, y, image=self.heartTkImg, anchor='nw')
@@ -348,7 +457,7 @@ class MyWindow(tk.Tk):
             self.screen.delete(heart)
         self.hearts.clear()
 
-        for i in range(self.object_ball.vies):
+        for i in range(self.object_ball.lives.count()):
             heart = self.HP(x + i * 35, y)
             self.hearts.append(heart)
 
@@ -365,7 +474,7 @@ class MyWindow(tk.Tk):
 
         # reset score and lives and ball
         self.score = 0
-        self.object_ball.vies = 3
+        self.object_ball.lives = LifeStack(3)
         self.object_ball.x = x0
         self.object_ball.y = y0
         vitesse = 10
@@ -373,6 +482,23 @@ class MyWindow(tk.Tk):
         self.object_ball.dx = vitesse * math.cos(angle)
         self.object_ball.dy = vitesse * math.sin(angle)
         self.object_ball.moving = False
+
+        # cancel any pending paddle boost and reset paddle size
+        try:
+            p = self.object_paddle
+            if getattr(p, 'boost_timer', None):
+                try:
+                    self.after_cancel(p.boost_timer)
+                except Exception:
+                    pass
+                p.boost_timer = None
+            # reset width and boosted flag
+            if getattr(p, 'default_width', None) is not None:
+                p.width = p.default_width
+                p.boosted = False
+                p.set_x(p.x)
+        except Exception:
+            pass
 
         # rebuild bricks
         for b in list(self.Bricks):
