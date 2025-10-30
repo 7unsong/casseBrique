@@ -1,3 +1,6 @@
+"Créé le 9 Octobre 2025 par Yun SONG et Guillian Durand"
+"Ce fichier (...)"
+
 import tkinter as tk
 import math, random
 from PIL import Image, ImageTk
@@ -10,65 +13,69 @@ y0 = 5/6 * height
 r = 10
 
 class Ball:
-    def __init__(self, screen, x, y, rayon):
+    def __init__(self, screen, x, y, radius):
+
+        # Initialisation des variables
+
         self.screen = screen
         self.x = x
         self.y = y
-        self.rayon = rayon
-        vitesse = 10
+        self.radius = radius
+        speed = 10
         angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
-        self.dx = vitesse * math.cos(angle)
-        self.dy = vitesse * math.sin(angle)
+        self.dx = speed * math.cos(angle)
+        self.dy = speed * math.sin(angle)
         self.width = int(screen["width"])
         self.height = int(screen["height"])
-        self.vies = 3
+        self.lifes = 3
         self.moving = False
 
-        # Création de la balles
-        self.id = screen.create_oval(self.x - rayon, self.y - rayon, self.x + rayon, self.y + rayon, fill="red")
+        # Création de la balle
+        self.id = screen.create_oval(self.x - radius, self.y - radius, self.x + radius, self.y + radius, fill="red")
 
     def deplacement(self):
-        # Gestion des collisions
+        
+        
 
+        # Collisions avec les bords
 
-        if self.x + self.rayon + self.dx > self.width:
-            self.x = self.width - self.rayon
+        if self.x + self.radius + self.dx > self.width:
+            self.x = self.width - self.radius
             self.dx = -self.dx
 
-        if self.x - self.rayon + self.dx < 0:
-            self.x = self.rayon
+        if self.x - self.radius + self.dx < 0:
+            self.x = self.radius
             self.dx = -self.dx
 
-        if self.y - self.rayon + self.dy < 0:
-            self.y = self.rayon
+        if self.y - self.radius + self.dy < 0:
+            self.y = self.radius
             self.dy = -self.dy
 
 
         self.x += self.dx
         self.y += self.dy
 
-        # brick collisions
+        # Collisions avec les briques
+
         if hasattr(self.screen.master, "Bricks"):
             for brique in list(self.screen.master.Bricks):
-
 
                 bx1 = brique.x
                 by1 = brique.y
                 bx2 = brique.x + brique.width
                 by2 = brique.y + brique.height
 
-                xb1 = self.x - self.rayon
-                yb1 = self.y - self.rayon
-                xb2 = self.x + self.rayon
-                yb2 = self.y + self.rayon
+                xb1 = self.x - self.radius
+                yb1 = self.y - self.radius
+                xb2 = self.x + self.radius
+                yb2 = self.y + self.radius
 
                 if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
 
-                    # remove brick
+                    # Suppression de brique
 
                     self.screen.delete(brique.rect)
                     self.screen.master.Bricks.remove(brique)
-
 
                 # Détermine le côté de l'impact
 
@@ -85,91 +92,96 @@ class Ball:
                     else:
                         self.dx *= -1
                     
-                    # increment score on main window
+                    # Mise a jour du score
 
                     self.screen.master.score += 100
                     if hasattr(self.screen.master, 'update_score'):
                         self.screen.master.update_score()
                    
-                    
                     if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
                         self.screen.master.win()
                    
                 
 
 
-        # paddle collision
+        # Collision avec la raquette
+
         paddle = getattr(self.screen.master, 'object_paddle', None)
         if paddle is not None:
             paddle_x = getattr(paddle, 'x', None)
             paddle_y = getattr(paddle, 'y', None)
             paddle_w = getattr(paddle, 'width', None)
             if paddle_x is None:
-                try:
-                    paddle_x, paddle_y, px2, py2 = self.screen.coords(paddle.paddle)
-                    paddle_w = px2 - paddle_x
-                except Exception:
-                    paddle_x = 0
-                    paddle_y = self.height
-                    paddle_w = 0
+                
+                paddle_x, paddle_y, px2, py2 = self.screen.coords(paddle.paddle)
+                paddle_w = px2 - paddle_x
+                
+                paddle_x = 0
+                paddle_y = self.height
+                paddle_w = 0
 
-            ball_left = self.x - self.rayon
-            ball_right = self.x + self.rayon
-            ball_bottom = self.y + self.rayon
-            ball_top = self.y - self.rayon
+            ball_left = self.x - self.radius
+            ball_right = self.x + self.radius
+            ball_bottom = self.y + self.radius
+            ball_top = self.y - self.radius
 
             paddle_left = paddle_x
             paddle_right = paddle_x + paddle_w
             paddle_top = paddle_y
 
             if ball_right >= paddle_left and ball_left <= paddle_right and ball_bottom >= paddle_top and ball_top < paddle_top:
-                self.y = paddle_top - self.rayon
+                self.y = paddle_top - self.radius
                 self.dy = -self.dy
 
-        # fallen below bottom
-        if self.y + self.rayon + 10 > self.height:
-            self.vies -= 1
-            # stop and reset
+        # Traitement du cas où la balle tombe (en bas)
+
+        if self.y + self.radius + 10 > self.height:
+            self.lifes -= 1 # Perte d'une vie
+
+            # Arret puis relance
+
             self.moving = False
             self.x = x0
             self.y = y0
-            # reset velocity
-            vitesse = 10
+
+            # Réinitialisation des valeurs (angle et vitesse)
+
+            speed = 10
             angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
-            self.dx = vitesse * math.cos(angle)
-            self.dy = vitesse * math.sin(angle)
-            # reset paddle center if available
+            self.dx = speed * math.cos(angle)
+            self.dy = speed * math.sin(angle)
+
+            # Repositionnement de la raquette
+
             paddle.set_x(x0 - paddle.width/2)
-            try:
-                self.moving = False
-                self.x = x0
-                self.y = y0
-                if hasattr(self.screen.master, 'update_lives'):
-                    self.screen.master.update_lives()
-                try:
-                    if self.vies <= 0 and hasattr(self.screen.master, 'game_over'):
-                        self.screen.master.game_over()
-                except Exception:
-                    pass
-            except Exception:
-                pass
-
-
-            # update lives and check game over
+            self.moving = False
+            self.x = x0
+            self.y = y0
             if hasattr(self.screen.master, 'update_lives'):
                 self.screen.master.update_lives()
-            if self.vies <= 0 and hasattr(self.screen.master, 'game_over'):
+                
+                if self.lifes <= 0 and hasattr(self.screen.master, 'game_over'):
+                    self.screen.master.game_over()
+
+
+
+            # Mise a jour du nombre de vies et vérification si "Game Over"
+
+            if hasattr(self.screen.master, 'update_lives'):
+                self.screen.master.update_lives()
+            if self.lifes <= 0 and hasattr(self.screen.master, 'game_over'):
                 self.screen.master.game_over()
 
 
         # update ball canvas coords
-        self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon)
+        self.screen.coords(self.id, self.x - self.radius, self.y - self.radius, self.x + self.radius, self.y + self.radius)
 
         # schedule next frame
         if self.moving:
             self.screen.after(20, self.deplacement)
 
     def move(self, evt=None):
+
         win_flag = getattr(self.screen.master, 'has_won', False)
         over_flag = getattr(self.screen.master, 'is_game_over', False)
         if not (self.moving or win_flag or over_flag):
@@ -180,6 +192,9 @@ class Ball:
 class Brick:
     
     def __init__(self, screen, x, y, width, height, color, ball, img=None):
+
+        #Initialisation des variables
+
         self.screen = screen
         self.x = x
         self.y = y
@@ -279,7 +294,7 @@ class MyWindow(tk.Tk):
         self.labelScore = tk.Label(self, text=f"Score: {self.score}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
         self.labelScore.place(relx=0.90, rely=0.05)
 
-        self.object_ball.vies = 3
+        self.object_ball.lifes = 3
         self.showHP(20, 20)
 
 
@@ -288,7 +303,9 @@ class MyWindow(tk.Tk):
 
         self.buttonPlay = tk.Button(self, text="Jouer", font=36, fg="green", command=self.object_ball.move)
         self.buttonPlay.place(relx=0.02, rely=0.93)
-        # bind space key (lowercase 'space' keysym) — ignore event argument
+
+        # Lancer le jeu lors de l'appui de la touche espace
+
         self.screen.bind_all("<space>", lambda e: self.object_ball.move())
 
         self.Bricks = []
@@ -348,7 +365,7 @@ class MyWindow(tk.Tk):
             self.screen.delete(heart)
         self.hearts.clear()
 
-        for i in range(self.object_ball.vies):
+        for i in range(self.object_ball.lifes):
             heart = self.HP(x + i * 35, y)
             self.hearts.append(heart)
 
@@ -365,13 +382,13 @@ class MyWindow(tk.Tk):
 
         # reset score and lives and ball
         self.score = 0
-        self.object_ball.vies = 3
+        self.object_ball.lifes = 3
         self.object_ball.x = x0
         self.object_ball.y = y0
-        vitesse = 10
+        speed = 10
         angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
-        self.object_ball.dx = vitesse * math.cos(angle)
-        self.object_ball.dy = vitesse * math.sin(angle)
+        self.object_ball.dx = speed * math.cos(angle)
+        self.object_ball.dy = speed * math.sin(angle)
         self.object_ball.moving = False
 
         # rebuild bricks
