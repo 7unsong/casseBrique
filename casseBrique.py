@@ -196,11 +196,6 @@ class Ball:
 
         # Traitement du cas où la balle tombe (en bas)
 
-        if self.y + self.rayon + 10 > self.height:
-            self.lifes -= 1 # Perte d'une vie
-
-            # Arret puis relance
-
         # fallen below bottom
         if self.y + self.rayon + 10 > self.height:
             # lose one life from the stack
@@ -226,7 +221,7 @@ class Ball:
             if hasattr(self.screen.master, 'update_lives'):
                 self.screen.master.update_lives()
                 
-                if self.lifes <= 0 and hasattr(self.screen.master, 'game_over'):
+                if self.lives.is_empty() and hasattr(self.screen.master, 'game_over'):
                     self.screen.master.game_over()
 
 
@@ -235,7 +230,7 @@ class Ball:
 
             if hasattr(self.screen.master, 'update_lives'):
                 self.screen.master.update_lives()
-            if self.lifes <= 0 and hasattr(self.screen.master, 'game_over'):
+            if self.lives.is_empty() and hasattr(self.screen.master, 'game_over'):
                 self.screen.master.game_over()
 
 
@@ -377,7 +372,6 @@ class MyWindow(tk.Tk):
         self.labelScore = tk.Label(self, text=f"Score: {self.score}", bg="black", font=("Arial", 15, "bold"), fg="yellow")
         self.labelScore.place(relx=0.90, rely=0.05)
 
-        self.object_ball.lifes = 3
         # initialize bonus queue
         self.bonus_queue = BonusQueue()
         # start periodic game update (process pending bonuses)
@@ -477,8 +471,8 @@ class MyWindow(tk.Tk):
         height = 30
         width = 72
         space = 15
-        lines = 5
-        columns = 18
+        lines = 1
+        columns = 1
 
         for i in range(lines):
             for j in range(columns):
