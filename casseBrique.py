@@ -1,4 +1,4 @@
-"Créé le 9 Octobre 2025 par Yun SONG et Guillian Durand"
+"Créé le 9 Octobre 2025 par SONG Yun et DURAND Guillian"
 "Ce fichier contient les classes principales du jeu Casse-Brique ainsi que les fonctions de gestion du jeu."
 
 import tkinter as tk
@@ -13,12 +13,11 @@ x0 = width / 2
 y0 = 5/6 * height
 r = 10
 
-
 class LifeStack:
     
     def __init__(self, n):
         """Initialise une pile de vies avec n vies."""
-        self.stack = ['❤️'] * n
+        self.stack = ['life'] * n
 
     def lose_life(self):
         """Retire une vie de la pile."""
@@ -27,7 +26,7 @@ class LifeStack:
 
     def add_life(self):
         """Ajoute une vie à la pile."""
-        self.stack.append('❤️')
+        self.stack.append('life')
 
     def is_empty(self):
         """Vérifie si la pile de vies est vide."""
@@ -58,14 +57,14 @@ class BonusQueue:
         return len(self.queue) == 0
 
 class Ball:
-    def __init__(self, screen, x, y, radius):
+    def __init__(self, screen, x, y, rayon):
         
         # Initialisation des variables
 
         self.screen = screen
         self.x = x
         self.y = y
-        self.radius = radius
+        self.rayon = rayon
         speed = 10
         angle = random.uniform(11/6 * math.pi, 7/6 * math.pi)
         self.dx = speed * math.cos(angle)
@@ -76,7 +75,7 @@ class Ball:
         self.moving = False
 
         # Création de la balle
-        self.id = screen.create_oval(self.x - radius, self.y - radius, self.x + radius, self.y + radius, fill="red")
+        self.id = screen.create_oval(self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon, fill="red")
 
     def deplacement(self):
         
@@ -84,16 +83,16 @@ class Ball:
 
         # Collisions avec les bords
 
-        if self.x + self.radius + self.dx > self.width:
-            self.x = self.width - self.radius
+        if self.x + self.rayon + self.dx > self.width:
+            self.x = self.width - self.rayon
             self.dx = -self.dx
 
-        if self.x - self.radius + self.dx < 0:
-            self.x = self.radius
+        if self.x - self.rayon + self.dx < 0:
+            self.x = self.rayon
             self.dx = -self.dx
 
-        if self.y - self.radius + self.dy < 0:
-            self.y = self.radius
+        if self.y - self.rayon + self.dy < 0:
+            self.y = self.rayon
             self.dy = -self.dy
 
 
@@ -110,10 +109,10 @@ class Ball:
                 bx2 = brique.x + brique.width
                 by2 = brique.y + brique.height
 
-                xb1 = self.x - self.radius
-                yb1 = self.y - self.radius
-                xb2 = self.x + self.radius
-                yb2 = self.y + self.radius
+                xb1 = self.x - self.rayon
+                yb1 = self.y - self.rayon
+                xb2 = self.x + self.rayon
+                yb2 = self.y + self.rayon
 
                 if xb2 >= bx1 and xb1 <= bx2 and yb2 >= by1 and yb1 <= by2:
                 
@@ -139,16 +138,16 @@ class Ball:
                     self.screen.master.score += 100
                     if hasattr(self.screen.master, 'update_score'):
                         self.screen.master.update_score()
-                   
-                    if len(self.screen.master.Bricks) == 0 and hasattr(self.screen.master, 'win'):
-                        self.screen.master.win()
-                   
-                
 
+                    try:
+                        if hasattr(self.screen.master, "Bricks") and len(self.screen.master.Bricks) == 0:
+                            # schedule win() on la boucle principale Tk pour éviter tout problème d'appel direct
+                            if hasattr(self.screen.master, 'win'):
+                                self.screen.master.after(0, self.screen.master.win)
+                    except Exception:
+                        pass
 
         # Collision avec la raquette
-
-
                     # increment score
                 
                     self.screen.master.score += 100
@@ -182,22 +181,22 @@ class Ball:
                 paddle_y = self.height
                 paddle_w = 0
 
-            ball_left = self.x - self.radius
-            ball_right = self.x + self.radius
-            ball_bottom = self.y + self.radius
-            ball_top = self.y - self.radius
+            ball_left = self.x - self.rayon
+            ball_right = self.x + self.rayon
+            ball_bottom = self.y + self.rayon
+            ball_top = self.y - self.rayon
 
             paddle_left = paddle_x
             paddle_right = paddle_x + paddle_w
             paddle_top = paddle_y
 
             if ball_right >= paddle_left and ball_left <= paddle_right and ball_bottom >= paddle_top and ball_top < paddle_top:
-                self.y = paddle_top - self.radius
+                self.y = paddle_top - self.rayon
                 self.dy = -self.dy
 
         # Traitement du cas où la balle tombe (en bas)
 
-        if self.y + self.radius + 10 > self.height:
+        if self.y + self.rayon + 10 > self.height:
             self.lifes -= 1 # Perte d'une vie
 
             # Arret puis relance
@@ -241,7 +240,7 @@ class Ball:
 
 
         # mise a jour de la position de la balle
-        self.screen.coords(self.id, self.x - self.radius, self.y - self.radius, self.x + self.radius, self.y + self.radius)
+        self.screen.coords(self.id, self.x - self.rayon, self.y - self.rayon, self.x + self.rayon, self.y + self.rayon)
 
         # Rappelle la fonction après un court délai si la balle est en mouvement
         if self.moving:
@@ -259,11 +258,8 @@ class Ball:
 
 
 class Brick:
-    
-    def __init__(self, screen, x, y, width, height, color, ball, img=None):
-
+    def __init__(self, screen, x, y, width, height, color, ball, img=None, is_bonus = False):
         #Initialisation des variables
-
         self.screen = screen
         self.x = x
         self.y = y
@@ -277,7 +273,6 @@ class Brick:
             self.rect = screen.create_image(x, y, image=img, anchor='nw')
         else:
             self.rect = screen.create_rectangle(x, y, x + width, y + height, fill=color)
-
 
 
 class Paddle:
@@ -402,11 +397,7 @@ class MyWindow(tk.Tk):
         self.Bricks = []
         self.showBrick()
 
-        
-
-
     def update_lives(self):
-        """"""
         self.showHP(20,20)
 
     def update_score(self):
@@ -417,7 +408,6 @@ class MyWindow(tk.Tk):
 
     def update_game(self):
         """"Met à jour l'état du jeu périodiquement."""
-         # process pending bonuses
         try:
             if not self.bonus_queue.is_empty():
                 bonus = self.bonus_queue.use_bonus()
@@ -425,7 +415,6 @@ class MyWindow(tk.Tk):
                     self.apply_bonus(bonus)
         except Exception:
             pass
-        # reschedule
         self.after(200, self.update_game)
 
     def apply_bonus(self, bonus):
@@ -472,7 +461,6 @@ class MyWindow(tk.Tk):
         self.overlay_restart_btn = tk.Button(self, text='Restart', font=(None, 14), command=self.restart)
         self.screen.create_window(cx, cy + 60, window=self.overlay_restart_btn, tags=('overlay',))
 
-
     def game_over(self):
         """Gère la fin de partie du joueur."""
         self.object_ball.moving = False
@@ -492,12 +480,11 @@ class MyWindow(tk.Tk):
         lines = 5
         columns = 18
 
-
         for i in range(lines):
             for j in range(columns):
                 x = j * (width + space) + 20
                 y = i * (height + space) + 70
-                # small chance the brick is a bonus brick; use diamond texture if so
+                """ Il y a une chance que le bloque soit un bonus, on utilise la texture diamant si c'est le cas """
                 is_bonus = (random.random() < 0.2)
                 img = self.diamondTkTexture if is_bonus else self.brickTkTexture
                 self.Bricks.append(Brick(self.screen, x, y, width, height, 'black', self.object_ball, img=img, is_bonus=is_bonus))
@@ -518,17 +505,14 @@ class MyWindow(tk.Tk):
 
     def restart(self):
         """Redémarre le jeu."""
-        # clear overlay elements (text and restart button)
         self.screen.delete('overlay')
         if hasattr(self, 'overlay_restart_btn'):
             self.overlay_restart_btn.destroy()
             del self.overlay_restart_btn
 
-        # reset flags
         self.has_won = False
         self.is_game_over = False
 
-        # reset score and lives and ball
         self.score = 0
         self.object_ball.lives = LifeStack(3)
         self.object_ball.x = x0
@@ -539,7 +523,6 @@ class MyWindow(tk.Tk):
         self.object_ball.dy = speed * math.sin(angle)
         self.object_ball.moving = False
 
-        # cancel any pending paddle boost and reset paddle size
         try:
             p = self.object_paddle
             if getattr(p, 'boost_timer', None):
@@ -548,7 +531,7 @@ class MyWindow(tk.Tk):
                 except Exception:
                     pass
                 p.boost_timer = None
-            # reset width and boosted flag
+
             if getattr(p, 'default_width', None) is not None:
                 p.width = p.default_width
                 p.boosted = False
@@ -556,17 +539,15 @@ class MyWindow(tk.Tk):
         except Exception:
             pass
 
-        # rebuild bricks
         for b in list(self.Bricks):
             self.screen.delete(b.rect)
         self.Bricks = []
         self.showBrick()
 
-
-        # update UI and re-enable play
         self.update_score()
         self.update_lives()
         self.buttonPlay.config(state='normal')
+
 
 window = MyWindow()
 window.mainloop()
