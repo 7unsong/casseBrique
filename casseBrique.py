@@ -471,8 +471,8 @@ class MyWindow(tk.Tk):
         height = 30
         width = 72
         space = 15
-        lines = 1
-        columns = 1
+        lines = 5
+        columns = 18
 
         for i in range(lines):
             for j in range(columns):
